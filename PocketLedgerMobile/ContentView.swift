@@ -5,6 +5,7 @@ struct ContentView: View {
     @State private var store = LedgerStore()
     @AppStorage("appearance") private var appearance = "System"
     @State private var input = ""
+    @FocusState private var quickEntryFocused: Bool
     @State private var month = Date.now
     @State private var draft: Transaction?
     @State private var reviewSource = "Manual entry"
@@ -22,7 +23,15 @@ struct ContentView: View {
     var body: some View {
         TabView {
             Tab("Overview", systemImage: "square.grid.2x2.fill") {
-                NavigationStack { overview.navigationTitle("Pocket Ledger") }
+                NavigationStack {
+                    overview.navigationTitle("Pocket Ledger")
+                        .toolbar {
+                            ToolbarItemGroup(placement: .keyboard) {
+                                Spacer()
+                                Button("Done") { quickEntryFocused = false }
+                            }
+                        }
+                }
             }
             Tab("Activity", systemImage: "list.bullet.rectangle") {
                 NavigationStack { activity.navigationTitle("Activity") }
@@ -79,6 +88,7 @@ struct ContentView: View {
             .frame(maxWidth: .infinity)
         }
         .scrollDismissesKeyboard(.interactively)
+        .onDisappear { quickEntryFocused = false }
         .background(Color.teal.opacity(0.045))
     }
 
@@ -122,16 +132,19 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 14) {
             Label("A sentence is all it takes", systemImage: "sparkles").font(.title3.bold())
             TextField("Lunch $18 yesterday", text: $input, axis: .vertical)
+                .focused($quickEntryFocused)
                 .lineLimit(2...4).padding(14)
                 .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
                 .accessibilityLabel("Transaction description")
             HStack {
                 Button {
+                    quickEntryFocused = false
+                    let submittedInput = input
                     busy = true
                     Task {
                         defer { busy = false }
                         do {
-                            let result = try await IntelligenceService.review(input)
+                            let result = try await IntelligenceService.review(submittedInput)
                             reviewSource = result.1; draft = result.0
                         } catch { store.errorMessage = error.localizedDescription }
                     }
@@ -267,6 +280,7 @@ struct ContentView: View {
         month = Calendar.current.date(byAdding: .month, value: value, to: start)!
     }
     private func newEntry() {
+        quickEntryFocused = false
         reviewSource = "Manual entry"
         draft = Transaction(title: "", amountInCents: 0, kind: .expense, category: "Other", date: .now)
     }

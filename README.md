@@ -17,7 +17,7 @@ A local-first SwiftUI bookkeeping prototype for iPhone. Describe a transaction i
 
 ## Run
 
-Open `PocketLedgerMobile.xcodeproj` in Xcode 27, select the PocketLedgerMobile scheme and an iPhone with iOS 27 (or simulator), then Run. No third-party packages or API keys are required. A Mac run destination is also available.
+Open `PocketLedgerMobile.xcodeproj` in Xcode 27, select the PocketLedgerMobile scheme and an iPhone with iOS 26 or later (or simulator), then Run. No third-party packages or API keys are required. A Mac run destination is also available.
 
 For a physical iPhone, select your own signing team in Signing & Capabilities. This repository does not include signing credentials.
 
